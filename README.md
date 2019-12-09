@@ -27,3 +27,6 @@ func main(){
     * 1.1 GetSendClientMsg 方法：此函数用于处理client发送过来的msg，需要你自己将msg发送到你自己业务中的队列中去,充当生产者的角色
     * 1.2 AccessClientMsg 方法：此函数用于从队列中拉取需要发送给client的数据,充当消费者的角色
 
+* 2 示例中使用的时redis充当消息队列，但是其实上面的2方法只需要你保证消息处理与消息获取，及AccessClientMsg时每当有client有消息来到的时候就会执行它一次
+   GetSendClientMsg 是只要你想给client发送一条消息，你只需要保证它能够获取到你想要发送的消息便可，框架自会保证消息点到点的稳定到达,值得你注意的是你需
+   要保证GetSendClientMsg获取到的json格式应该为{"client_id":"123"},及AccessClientMsg中存在的那个client_id的值。
