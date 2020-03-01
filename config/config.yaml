@@ -1,0 +1,83 @@
+# 服务基本配置
+server:
+  runMode: debug
+  port: 8888
+  readTimeout: 60
+  writeTimeout: 60
+  jwtSecret: MARKET.MONITOR.SECRET
+  jwtExpire: 24   # 单位: 小时
+  prefixUrl: http://127.0.0.1:8000
+  staticRootPath: public/
+  uploadImagePath: upload/img/
+  imageFormats:
+  - .jpg
+  - .jpeg
+  - .png
+  uploadLimit: 5  # 单位：Megabyte 兆字节
+
+# 邮箱配置
+email:
+  servName: Monitor Service
+  userName: jiangink@126.com
+  password: cncd2000ixx
+  host: smtp.126.com
+  port: 25
+  contentTypeHTML: text/html
+  contentTypePlain: text/plain
+
+# 数据库配置
+database:
+  dbType: mysql
+  user: root
+  password: 123456
+  host: 127.0.0.1
+  port: 33070
+  dbName: shop
+  tablePrefix:
+  debug: true
+
+# mongo配置
+mongo:
+  host: mongodb://localhost
+  port: 27017
+  dbName: testing_base
+
+
+# redis 配置
+redis:
+  host: 127.0.0.1:6379
+  port: 6379
+  password:
+  db: 0
+  maxIdle: 30
+  maxActive: 30
+  idleTimeout: 200
+
+# 日志 配置
+logger:
+  level: DEBUG
+  pretty: true
+  color: true
+
+# CORS 跨域资源共享
+cors:
+  allowAllOrigins: true
+  allowMethods:
+  - GET
+  - HEAD
+  - POST
+  - PUT
+  - DELETE
+  - CONNECT
+  - OPTIONS
+  - TRACE
+  - PATCH
+  allowHeaders:
+  - Origin
+  - Accept
+  - Content-Type
+  - Authorization
+  exposeHeaders:
+  - Content-Length
+  allowCredentials: true
+  maxAge: 12  # 单位: 小时

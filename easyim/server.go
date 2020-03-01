@@ -10,13 +10,12 @@ type WebSocketChat interface {
 	AccessClientMsg(msg string) (err error)
 }
 
-func NewHub(w WebSocketChat) (ws *Hub) {
+func NewHub() (ws *Hub) {
 	ws = &Hub{
 		register:   make(chan *Client),
 		unregister: make(chan *Client),
 		clientMap:  make(map[int]*Client),
 	}
-	ws.WebSocketChat = w
 	return
 }
 
@@ -29,7 +28,7 @@ func ServeHome(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	http.ServeFile(w, r, `D:\project\go-mongo\examples\chat\home.html`)
+	http.ServeFile(w, r, `/Applications/project/go-im/view/home.html`)
 }
 
 // websocket 处理器，处理client发送过来的msg

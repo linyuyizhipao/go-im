@@ -1,75 +1,75 @@
 package main
 
 import (
-	"errors"
 	"fmt"
-	"github.com/go-redis/redis"
-	"github.com/tidwall/gjson"
+	"github.com/rs/zerolog/log"
 	"net/http"
 	"test/easyim"
+	"test/extend/conf"
+	"test/extend/logs"
+	"test/extend/redis"
+	"time"
 )
+var hub *easyim.Hub
 
-type webSckt struct {
-	addr string
-	easyim.WebSocketChat
+//消费者
+func sendMsgToClient() {
+	for {
+		if str, err := redis.Client.Do("lpop", "chat_test").String();err == nil{
+
+			if str == "" {
+				time.Sleep(time.Microsecond * 3)
+				continue
+			}
+
+			log.Info().Msgf("我是要发送到客户端的消息%s:",str)
+			easyim.MessageJsonByService <- str
+		}else{
+			log.Error().Msgf("lpop发生了错误%s:",err.Error())
+			time.Sleep(time.Microsecond * 300)
+		}
+	}
 }
 
-func (*webSckt) GetSendClientMsg() (str string, err error) {
-	str, err = redisClient.Do("rpop", "chat_test").String()
-	clientId := gjson.Get(str, easyim.CLIENT_MSG_MAP_KEY_NAME).String()
-	if clientId == "" {
-		err = errors.New("没有获取到数据")
-	}
-	return
-}
+// client发送过来的消息，生产者
+func getMsgToClient() {
+	for msg := range easyim.MessageJsonByClient {
+		log.Info().Msgf("给客户端发送过来的消息:%s",msg)
 
-func (*webSckt)  AccessClientMsg(msg string) (err error) {
-	b, err := redisClient.Do("lpush", "chat_test", msg).Bool()
-	if err != nil {
-		err = errors.New(fmt.Sprintf("lpush%s发生了错误，错误信息为：%s", msg, err.Error()))
+		go func(){
+			b, err := redis.Client.Do("lpush", "chat_test", msg).Bool()
+			if err != nil {
+				log.Error().Msg(fmt.Sprintf("lpush%s发生了错误，错误信息为：%s", msg, err.Error()))
+			}
+			if b != true {
+				log.Error().Msg(fmt.Sprintf("lpush发生失败了，错误信息为：%s", msg))
+			}
+		}()
+
 	}
-	if b != true {
-		err = errors.New(fmt.Sprintf("lpush%s发生失败了，错误信息为：%s", msg))
-	}
-	return
 }
 
 
 func main(){
-	ws := new(webSckt)
-	ws.addr = ":8080"
-	hub := easyim.NewHub(ws)
+	conf.Setup()  //基本配置初始化
+	logs.Initlog()  // 日志初始化
+	redis.InitRedis()  // 缓存初始化
+	addr := fmt.Sprintf(":%d",conf.ServerConf.Port)
+	hub = easyim.NewHub()
 	hub.Run()
 
 	http.HandleFunc("/", easyim.ServeHome)
 	http.HandleFunc("/ws", func(w http.ResponseWriter, r *http.Request) {
 		easyim.ServeWs(hub, w, r)
 	})
-	err := http.ListenAndServe(ws.addr, nil)
+
+	go sendMsgToClient()
+	go getMsgToClient()
+
+	log.Info().Msg("启动成功")
+	err := http.ListenAndServe(addr, nil)
 	if err != nil {
-		fmt.Println("ListenAndServe", err)
+		log.Error().Msgf("ListenAndServe:%s",err.Error())
 	}
 }
 
-
-
-
-func init() {
-	InitRedis()
-}
-
-var redisClient *redis.Client
-
-func InitRedis() {
-	redisClient = redis.NewClient(&redis.Options{
-		Addr:         "127.0.0.1:6379",
-		Password:     "",
-		DB:           0,
-		PoolSize:     30,
-		MinIdleConns: 30,
-	})
-	_, err := redisClient.Ping().Result()
-	if err != nil {
-		panic(err.Error())
-	}
-}
