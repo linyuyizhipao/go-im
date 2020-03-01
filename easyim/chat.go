@@ -118,7 +118,6 @@ func (c *Client) readPump() {
 	})
 	for {
 		_, message, err := c.conn.ReadMessage()
-		log.Info().Msg("dsdsdsdds")
 		if err != nil {
 			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway, websocket.CloseAbnormalClosure) {
 				log.Error().Msgf("error:%s", err.Error())

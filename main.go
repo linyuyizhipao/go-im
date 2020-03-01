@@ -25,8 +25,7 @@ func sendMsgToClient() {
 			log.Info().Msgf("我是要发送到客户端的消息%s:",str)
 			easyim.MessageJsonByService <- str
 		}else{
-			log.Error().Msgf("lpop发生了错误%s:",err.Error())
-			time.Sleep(time.Microsecond * 300)
+			time.Sleep(time.Microsecond * 3)
 		}
 	}
 }

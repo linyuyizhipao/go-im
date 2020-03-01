@@ -28,7 +28,7 @@ func ServeHome(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 		return
 	}
-	http.ServeFile(w, r, `/Applications/project/go-im/view/home.html`)
+	http.ServeFile(w, r, `./view/home.html`)
 }
 
 // websocket 处理器，处理client发送过来的msg
